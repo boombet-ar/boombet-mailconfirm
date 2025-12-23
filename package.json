@@ -20,6 +20,9 @@
     "url": "https://github.com/boombet-ar/boombet-mailconfirm/issues"
   },
   "homepage": "https://github.com/boombet-ar/boombet-mailconfirm#readme",
+  "engines": {
+    "node": "22.x"
+  },
   "devDependencies": {
     "vite": "^7.3.0"
   }
