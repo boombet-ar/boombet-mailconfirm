@@ -1,65 +1,6 @@
-// Esta función se ejecuta apenas carga la página
 window.onload = function () {
-  // 1. OBTENER EL TOKEN DE LA URL
-  // La URL actual es: https://tudominio.com/verificar/EL_TOKEN_AQUI
-  const path = window.location.pathname; // Devuelve "/verificar/EL_TOKEN_AQUI"
-
-  // Cortamos el string por las barras "/" y nos quedamos con la última parte
-  const partes = path.split("/");
-  const token = partes[partes.length - 1]; // "EL_TOKEN_AQUI"
-
-  console.log(token)
-  // Validación simple por si entraron sin token
-  if (
-    !token ||
-    token === "verificar" ||
-    token === "index.html" ||
-    token === ""
-  ) {
-    console.error("No se encontró un token válido en la URL");
-    // Aquí podrías mostrar un mensaje de error en la UI si quieres
-    return;
-  }
-
-  console.log("Token capturado:", token);
-
-  // 2. LLAMAR A LA API
-  // Endpoint: /api/users/auth/verify?token=XYZ
-
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
-  if (!backendUrl) {
-      console.error("Error de configuración: Falta VITE_BACKEND_URL");
-      return;
-  }
-
-  const endpoint = `${backendUrl}/api/users/auth/verify?token=${token}`;
-
-  fetch(endpoint, {
-    method: "GET",
-  })
-    .then((response) => {
-      if (response.ok) {
-        // Si el código es 200
-        console.log("¡Cuenta verificada con éxito!");
-
-        // Opcional: Podrías actualizar el texto de la página
-        // document.querySelector('h2').innerText = "¡Verificación Exitosa!";
-
-        // Opcional: Redirigir a la app después de unos segundos
-        // setTimeout(() => {
-        // }, 3000);
-      } else {
-        // Si es 400, 401, 500, etc.
-        console.error("El enlace ha caducado o no es válido");
-        // Aquí podrías mostrar un mensaje de error en la UI
-      }
-    })
-    .catch((error) => {
-      console.error("Error al conectar con el servidor:", error);
-    });
-
-
-
+  // --- FUNCIÓN DE DEBUG EN PANTALLA ---
+  // Escribe los logs en el div negro para verlos desde el celular
   function logToScreen(mensaje) {
     const consola = document.getElementById("debug-console");
     if (consola) {
@@ -67,37 +8,110 @@ window.onload = function () {
     }
     console.log(mensaje);
   }
-  // 3. CONFIGURAR BOTÓN CON LÓGICA CONDICIONAL
+
+  logToScreen("Iniciando script...");
+
+  // 1. OBTENER EL TOKEN DE LA URL
+  const path = window.location.pathname;
+  const partes = path.split("/");
+  const token = partes[partes.length - 1];
+
+  // Validación
+  if (!token || token === "verificar" || token === "index.html" || token === "") {
+    logToScreen("❌ Error: No se encontró un token válido en la URL.");
+    console.error("No se encontró un token válido");
+    return;
+  }
+
+  logToScreen(`✅ Token capturado: ${token}`);
+
+  // 2. LLAMAR A LA API
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  
+  if (!backendUrl) {
+      logToScreen("❌ ERROR CRÍTICO: Falta variable VITE_BACKEND_URL");
+      console.error("Error de configuración: Falta VITE_BACKEND_URL");
+      return;
+  }
+
+  const endpoint = `${backendUrl}/api/users/auth/verify?token=${token}`;
+  logToScreen(`📡 Consultando API...`);
+
+  fetch(endpoint, { method: "GET" })
+    .then((response) => {
+      if (response.ok) {
+        logToScreen("✅ ¡API respondió 200 OK! Cuenta verificada.");
+        console.log("¡Cuenta verificada con éxito!");
+      } else {
+        logToScreen(`⚠️ API respondió con error: Status ${response.status}`);
+        console.error("El enlace ha caducado o no es válido");
+      }
+    })
+    .catch((error) => {
+      logToScreen(`❌ Error de conexión (Fetch): ${error.message}`);
+      console.error("Error al conectar con el servidor:", error);
+    });
+
+  // 3. CONFIGURAR BOTÓN CON LÓGICA CONDICIONAL Y DEBUG
   const btnReturnApp = document.getElementById("btnReturnApp");
   
   if (btnReturnApp) {
     btnReturnApp.addEventListener("click", function (e) {
       e.preventDefault();
+      logToScreen("<br>--- Botón presionado ---");
 
-      // Leer variables de entorno inyectadas por Vite
+      // Leer variables de entorno
       const webUrl = import.meta.env.VITE_WEB_URL;
       const deepLink = import.meta.env.VITE_DEEP_LINK;
-      logToScreen(`Variable Deep Link: "${deepLink}"`); //QUITAR 
-      // Detectar si es Android
+      
+      // Imprimir configuración para verificar que los Secrets de GitHub funcionaron
+      logToScreen(`🔗 DeepLink Config: "${deepLink}"`);
+      logToScreen(`🌐 WebUrl Config: "${webUrl}"`);
+
+      // Detectar Android
       const userAgent = navigator.userAgent || navigator.vendor || window.opera;
       const isAndroid = /android/i.test(userAgent);
+      
+      logToScreen(`📱 Dispositivo: ${isAndroid ? "ANDROID" : "DESKTOP / IOS"}`);
 
       if (isAndroid) {
-        logToScreen("Intentando redirigir a la APP...");
-        // Si es Android, usamos el Deep Link
-        console.log("Dispositivo Android detectado. Abriendo App...");
-        if(deepLink) window.location.href = deepLink;
+        logToScreen("🚀 Intentando abrir App Android...");
         
-        else {
-          logToScreen("ERROR: El deep link está vacío.");  
-          console.error("Falta definir VITE_DEEP_LINK");
+        if (!deepLink) {
+            logToScreen("❌ ERROR: VITE_DEEP_LINK está vacío.");
+            return;
         }
+
+        // INTENTO DE REDIRECCIÓN CON DIAGNÓSTICO
+        try {
+            logToScreen(`Navegando a: ${deepLink}`);
+            
+            // Usamos assign que suele ser más agresivo para deep links
+            window.location.assign(deepLink);
+            
+            // Si el usuario sigue viendo este mensaje después de 2 seg, falló
+            setTimeout(() => {
+                logToScreen("<br>⚠️ <b>ALERTA:</b> Si lees esto, la App no se abrió.");
+                logToScreen("Posibles causas:");
+                logToScreen("1. La App no está instalada.");
+                logToScreen("2. El esquema 'boombet://' no está configurado en el AndroidManifest.");
+            }, 2500);
+
+        } catch (err) {
+            logToScreen(`❌ Excepción JS al redirigir: ${err.message}`);
+        }
+
       } else {
-        // Si es Desktop (o iOS/otros), mandamos a la Web
-        console.log("Escritorio detectado. Yendo a la Web...");
-        if(webUrl) window.location.href = webUrl;
-        else console.error("Falta definir VITE_WEB_URL");
+        // Lógica Web
+        logToScreen("🌍 Redirigiendo a versión Web...");
+        if (webUrl) {
+            window.location.href = webUrl;
+        } else {
+            logToScreen("❌ ERROR: VITE_WEB_URL está vacío.");
+        }
       }
     });
+  } else {
+      logToScreen("❌ Error DOM: No se encontró el botón 'btnReturnApp'.");
   }
 };
