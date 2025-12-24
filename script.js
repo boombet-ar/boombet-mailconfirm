@@ -50,14 +50,32 @@ window.onload = function () {
       console.error("Error al conectar con el servidor:", error);
     });
 
-  // 3. CONFIGURAR BOTÓN PARA DEEP LINK
+  // 3. CONFIGURAR BOTÓN CON LÓGICA CONDICIONAL
   const btnReturnApp = document.getElementById("btnReturnApp");
+  
   if (btnReturnApp) {
     btnReturnApp.addEventListener("click", function (e) {
       e.preventDefault();
 
-      // Redirige al esquema de la app
-      window.location.href = "boombet://verified";
+      // Leer variables de entorno inyectadas por Vite
+      const webUrl = import.meta.env.VITE_WEB_URL;
+      const deepLink = import.meta.env.VITE_DEEP_LINK;
+
+      // Detectar si es Android
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      const isAndroid = /android/i.test(userAgent);
+
+      if (isAndroid) {
+        // Si es Android, usamos el Deep Link
+        console.log("Dispositivo Android detectado. Abriendo App...");
+        if(deepLink) window.location.href = deepLink;
+        else console.error("Falta definir VITE_DEEP_LINK");
+      } else {
+        // Si es Desktop (o iOS/otros), mandamos a la Web
+        console.log("Escritorio detectado. Yendo a la Web...");
+        if(webUrl) window.location.href = webUrl;
+        else console.error("Falta definir VITE_WEB_URL");
+      }
     });
   }
 };
