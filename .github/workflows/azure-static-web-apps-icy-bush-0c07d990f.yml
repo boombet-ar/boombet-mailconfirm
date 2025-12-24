@@ -33,6 +33,10 @@ jobs:
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
+        env: # Aquí inyectamos los secretos como variables de entorno
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          VITE_DEEP_LINK: ${{ secrets.VITE_DEEP_LINK }}
+          VITE_WEB_URL: ${{ secrets.VITE_WEB_URL }}  
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
