@@ -26,7 +26,15 @@ window.onload = function () {
   // 2. LLAMAR A LA API
   // Endpoint: /api/users/auth/verify?token=XYZ
 
-  fetch(`/api/users/auth/verify?token=${token}`, {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  if (!backendUrl) {
+      console.error("Error de configuración: Falta VITE_BACKEND_URL");
+      return;
+  }
+
+  const endpoint = `${backendUrl}/api/users/auth/verify?token=${token}`;
+
+  fetch(endpoint, {
     method: "GET",
   })
     .then((response) => {
@@ -39,7 +47,6 @@ window.onload = function () {
 
         // Opcional: Redirigir a la app después de unos segundos
         // setTimeout(() => {
-        //     window.location.href = 'https://boombetbackend.calmpebble-5d8daaab.brazilsouth.azurecontainerapps.io';
         // }, 3000);
       } else {
         // Si es 400, 401, 500, etc.
