@@ -8,6 +8,7 @@ window.onload = function () {
   const partes = path.split("/");
   const token = partes[partes.length - 1]; // "EL_TOKEN_AQUI"
 
+  console.log(token)
   // Validación simple por si entraron sin token
   if (
     !token ||
