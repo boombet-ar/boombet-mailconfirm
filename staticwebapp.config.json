@@ -1,0 +1,8 @@
+{
+  "routes": [
+    {
+      "route": "/verificar/*",
+      "rewrite": "/index.html"
+    }
+  ]
+}
