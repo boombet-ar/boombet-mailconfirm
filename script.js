@@ -58,6 +58,15 @@ window.onload = function () {
       console.error("Error al conectar con el servidor:", error);
     });
 
+
+
+  function logToScreen(mensaje) {
+    const consola = document.getElementById("debug-console");
+    if (consola) {
+      consola.innerHTML += `> ${mensaje}<br>`;
+    }
+    console.log(mensaje);
+  }
   // 3. CONFIGURAR BOTÓN CON LÓGICA CONDICIONAL
   const btnReturnApp = document.getElementById("btnReturnApp");
   
@@ -68,16 +77,21 @@ window.onload = function () {
       // Leer variables de entorno inyectadas por Vite
       const webUrl = import.meta.env.VITE_WEB_URL;
       const deepLink = import.meta.env.VITE_DEEP_LINK;
-
+      logToScreen(`Variable Deep Link: "${deepLink}"`); //QUITAR 
       // Detectar si es Android
       const userAgent = navigator.userAgent || navigator.vendor || window.opera;
       const isAndroid = /android/i.test(userAgent);
 
       if (isAndroid) {
+        logToScreen("Intentando redirigir a la APP...");
         // Si es Android, usamos el Deep Link
         console.log("Dispositivo Android detectado. Abriendo App...");
         if(deepLink) window.location.href = deepLink;
-        else console.error("Falta definir VITE_DEEP_LINK");
+        
+        else {
+          logToScreen("ERROR: El deep link está vacío.");  
+          console.error("Falta definir VITE_DEEP_LINK");
+        }
       } else {
         // Si es Desktop (o iOS/otros), mandamos a la Web
         console.log("Escritorio detectado. Yendo a la Web...");
