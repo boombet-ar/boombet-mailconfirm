@@ -3,6 +3,10 @@
     {
       "route": "/verificar/*",
       "rewrite": "/index.html"
+    },
+    {
+      "route": "/restablecer/*",
+      "rewrite": "/index.html"
     }
   ]
 }
