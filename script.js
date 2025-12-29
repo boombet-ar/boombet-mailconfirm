@@ -1,77 +1,138 @@
-
 window.onload = function () {
-  const path = window.location.pathname; // Ej: "/verificar/123" o "/restablecer/abc"
-  
+  console.log("Iniciando Boombet Actions...");
+
+  const path = window.location.pathname;
+  const partes = path.split("/");
+  const token = partes[partes.length - 1];
+
   // Elementos del DOM
   const title = document.getElementById("pageTitle");
   const desc = document.getElementById("pageDescription");
   const btn = document.getElementById("btnAction");
   const iconContainer = document.getElementById("iconWrapper");
 
+  // Variables de entorno generales
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
   // Configuración por defecto
   let config = {
     webUrl: "",
     deepLink: "",
-    titleText: "Error",
-    descText: "Enlace no reconocido.",
-    iconHtml: "" // SVG de error
+    iconHtml: "" 
   };
 
-  // 1. DETECTAR EL MODO SEGÚN LA RUTA
+  // --- LÓGICA 1: VERIFICACIÓN DE CORREO ---
   if (path.includes("/verificar/")) {
-    // --- MODO VERIFICACIÓN ---
+    console.log("Modo: Verificación de Cuenta");
+
+    // 1. Validar Token básico
+    if (!token || token === "verificar" || token === "index.html" || token === "") {
+      console.error("❌ No se encontró un token válido");
+      title.innerText = "Enlace inválido";
+      desc.innerText = "El link no contiene un código de seguridad.";
+      return;
+    }
+
+    // 2. LLAMADA A LA API (Igual a mailconfirm)
+    const endpoint = `${backendUrl}/api/users/auth/verify?token=${token}`;
+    console.log(`📡 Consultando API: ${endpoint}`);
+
+    fetch(endpoint, { method: "GET" })
+      .then((response) => {
+        if (response.ok) {
+          console.log("✅ ¡Cuenta verificada con éxito en backend!");
+        } else {
+          console.error(`❌ Error API. Status: ${response.status}`);
+          title.innerText = "Enlace Caducado";
+          desc.innerText = "Este enlace ya no es válido o ha expirado.";
+          iconContainer.style.filter = "grayscale(100%)"; 
+        }
+      })
+      .catch((error) => {
+        console.error("❌ Error de conexión:", error);
+      });
+
+    // 3. Configuración UI
     config.webUrl = import.meta.env.VITE_VERIFY_WEB_URL;
     config.deepLink = import.meta.env.VITE_VERIFY_DEEP_LINK;
-    config.titleText = "¡Cuenta Verificada!";
-    config.descText = "Gracias por confiar en el club. Ya sos parte oficial.";
     
-    // Aquí ponés el SVG del check verde que tenías
-    config.iconHtml = `<svg class="checkmark" ...> ... </svg>`; 
+    title.innerText = "¡Cuenta Verificada!";
+    desc.innerText = "Gracias por confiar en el club. Ya sos parte oficial de la comunidad.";
     
-    // (Opcional) Llamada a API de verificar aquí mismo si querés que el backend valide antes
-    
+    config.iconHtml = `
+      <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+      </svg>`;
+
+  // --- LÓGICA 2: CAMBIO DE CONTRASEÑA ---
   } else if (path.includes("/restablecer/")) {
-    // --- MODO CHANGE PASSWORD ---
+    console.log("Modo: Restablecer Contraseña");
+
+    if (!token) {
+       title.innerText = "Enlace inválido";
+       return;
+    }
+    
     config.webUrl = import.meta.env.VITE_RESET_WEB_URL;
     config.deepLink = import.meta.env.VITE_RESET_DEEP_LINK;
-    config.titleText = "Restablecer Clave";
-    config.descText = "Para cambiar tu contraseña, continuá desde la App o la Web.";
-    
-    // Aquí podrías poner un SVG de un candado o llave
-    config.iconHtml = `<svg class="lock-icon" ...> ... </svg>`;
+
+    title.innerText = "Restablecer Clave";
+    desc.innerText = "Para crear tu nueva contraseña, continuá desde la App o la Web.";
+
+    config.iconHtml = `
+      <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+         <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" stroke="#4ce68b"/>
+         <path class="checkmark__check" fill="none" d="M16 26 h20 M26 16 v20" stroke-width="3"/> 
+      </svg>`; 
+  } else {
+      console.warn("Ruta no reconocida");
+      return; 
   }
 
-  // 2. EXTRAER TOKEN
-  const partes = path.split("/");
-  const token = partes[partes.length - 1];
-
-  if (!token) {
-    title.innerText = "Enlace inválido";
-    desc.innerText = "No se encontró el código de seguridad.";
-    return;
-  }
-
-  // 3. RENDERIZAR LA UI
-  title.innerText = config.titleText;
-  desc.innerText = config.descText;
+  // Renderizar
   iconContainer.innerHTML = config.iconHtml;
-  btn.style.display = "inline-block"; // Mostrar botón
+  btn.style.display = "inline-block";
 
-  // 4. LÓGICA DEL BOTÓN (Universal)
-  btn.addEventListener("click", (e) => {
+  // --- LÓGICA BOTÓN (Con detección de User Agent explícita) ---
+  btn.addEventListener("click", function (e) {
     e.preventDefault();
-    
-    const isAndroid = /android/i.test(navigator.userAgent);
+    console.log("--- Botón presionado ---");
+
+    console.log(`🔗 DeepLink Config: "${config.deepLink}"`);
+    console.log(`🌐 WebUrl Config: "${config.webUrl}"`);
+
+    // Detección detallada (igual a tu archivo original)
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const isAndroid = /android/i.test(userAgent);
+
+    console.log(`📱 Dispositivo: ${isAndroid ? "ANDROID" : "DESKTOP / IOS"}`);
 
     if (isAndroid) {
-      // Redirección Android (Deep Link + Token)
-      window.location.assign(config.deepLink + token);
+      console.log("🚀 Intentando abrir App Android...");
+
+      if (!config.deepLink) {
+        console.error("❌ ERROR: Variable DEEP_LINK está vacía.");
+        return;
+      }
+
+      try {
+        console.log(`Navegando a: ${config.deepLink + token}`);
+        window.location.assign(config.deepLink + token);
+      } catch (err) {
+        console.error(`❌ Excepción JS al redirigir: ${err.message}`);
+      }
+
     } else {
-      // Redirección Web (Web URL + Token como query param)
-      const targetUrl = config.webUrl.includes("?") 
-        ? `${config.webUrl}&token=${token}` 
-        : `${config.webUrl}?token=${token}`;
-      window.location.href = targetUrl;
+      console.log("🌍 Redirigiendo a versión Web...");
+      if (config.webUrl) {
+        const targetUrl = config.webUrl.includes("?") 
+          ? `${config.webUrl}&token=${token}` 
+          : `${config.webUrl}?token=${token}`;
+        window.location.href = targetUrl;
+      } else {
+        console.error("❌ ERROR: Variable WEB_URL está vacía.");
+      }
     }
   });
 };
