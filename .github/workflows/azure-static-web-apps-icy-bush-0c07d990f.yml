@@ -36,7 +36,8 @@ jobs:
         env: # Aquí inyectamos los secretos como variables de entorno
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
           VITE_VERIFY_DEEP_LINK: ${{ secrets.VITE_VERIFY_DEEP_LINK }}
-          VITE_WEB_URL: ${{ secrets.VITE_WEB_URL }}  
+          VITE_WEB_URL: ${{ secrets.VITE_WEB_URL }}  #Esta hay q cambiarla por web-verify, y hay q agregar web-reset. Por ahora no sirve p nada
+          VITE_RESET_DEEP_LINK: ${{ secrets.VITE_RESET_DEEP_LINK }}  
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
