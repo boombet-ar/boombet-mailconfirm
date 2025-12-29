@@ -1,137 +1,148 @@
+// Función para escribir en la pantalla del celular
+function logToUI(msg, type = 'info') {
+  const consoleDiv = document.getElementById("debugConsole");
+  if (!consoleDiv) return;
+  
+  const color = type === 'error' ? 'red' : '#0f0';
+  const timestamp = new Date().toLocaleTimeString();
+  consoleDiv.innerHTML += `<span style="color:${color}">[${timestamp}] ${msg}</span><br>`;
+  
+  // Auto-scroll al final
+  consoleDiv.scrollTop = consoleDiv.scrollHeight;
+  
+  // También mantenemos el log normal
+  if (type === 'error') console.error(msg);
+  else console.log(msg);
+}
+
 window.onload = function () {
-  console.log("Iniciando Boombet Actions...");
+  logToUI("--- INICIO DE SCRIPT ---");
+  logToUI(`UserAgent: ${navigator.userAgent}`);
 
   const path = window.location.pathname;
+  logToUI(`Path detectado: ${path}`);
+
   const partes = path.split("/");
   const token = partes[partes.length - 1];
+  logToUI(`Token extraído: "${token}"`);
 
-  // Elementos del DOM
+  // Elementos DOM
   const title = document.getElementById("pageTitle");
   const desc = document.getElementById("pageDescription");
   const btn = document.getElementById("btnAction");
   const iconContainer = document.getElementById("iconWrapper");
 
-  // Variables de entorno generales
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  logToUI(`Backend URL: ${backendUrl}`);
 
-  // Configuración por defecto
   let config = {
     webUrl: "",
     deepLink: "",
     iconHtml: "" 
   };
 
-  // --- LÓGICA 1: VERIFICACIÓN DE CORREO ---
+  // --- DETERMINAR MODO ---
   if (path.includes("/verificar/")) {
-    console.log("Modo: Verificación de Cuenta");
+    logToUI("MODO: VERIFICAR");
 
-    // 1. Validar Token básico
-    if (!token || token === "verificar" || token === "index.html" || token === "") {
-      console.error("❌ No se encontró un token válido");
-      title.innerText = "Enlace inválido";
-      desc.innerText = "El link no contiene un código de seguridad.";
+    // Validar token
+    if (!token || token === "verificar" || token === "index.html") {
+      logToUI("❌ Token inválido", "error");
+      title.innerText = "Error Token";
       return;
     }
 
-    // 2. LLAMADA A LA API (Igual a mailconfirm)
+    // Llamada API
     const endpoint = `${backendUrl}/api/users/auth/verify?token=${token}`;
-    console.log(`📡 Consultando API: ${endpoint}`);
+    logToUI(`Fetch a: ${endpoint}`);
 
     fetch(endpoint, { method: "GET" })
       .then((response) => {
+        logToUI(`API Response Status: ${response.status}`);
         if (response.ok) {
-          console.log("✅ ¡Cuenta verificada con éxito en backend!");
+          logToUI("✅ API OK");
         } else {
-          console.error(`❌ Error API. Status: ${response.status}`);
+          logToUI("❌ API Error o Token Vencido", "error");
           title.innerText = "Enlace Caducado";
-          desc.innerText = "Este enlace ya no es válido o ha expirado.";
-          iconContainer.style.filter = "grayscale(100%)"; 
+          iconContainer.style.filter = "grayscale(100%)";
         }
       })
       .catch((error) => {
-        console.error("❌ Error de conexión:", error);
+        logToUI(`❌ Fetch Exception: ${error.message}`, "error");
       });
 
-    // 3. Configuración UI
     config.webUrl = import.meta.env.VITE_VERIFY_WEB_URL;
     config.deepLink = import.meta.env.VITE_VERIFY_DEEP_LINK;
     
     title.innerText = "¡Cuenta Verificada!";
-    desc.innerText = "Gracias por confiar en el club. Ya sos parte oficial de la comunidad.";
+    desc.innerText = "Revisá los logs abajo si no redirige.";
     
-    config.iconHtml = `
-      <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
-        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
-      </svg>`;
+    config.iconHtml = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" /><path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" /></svg>`;
 
-  // --- LÓGICA 2: CAMBIO DE CONTRASEÑA ---
   } else if (path.includes("/restablecer/")) {
-    console.log("Modo: Restablecer Contraseña");
+    logToUI("MODO: RESTABLECER");
 
-    if (!token) {
-       title.innerText = "Enlace inválido";
-       return;
-    }
-    
     config.webUrl = import.meta.env.VITE_RESET_WEB_URL;
     config.deepLink = import.meta.env.VITE_RESET_DEEP_LINK;
 
     title.innerText = "Restablecer Clave";
-    desc.innerText = "Para crear tu nueva contraseña, continuá desde la App o la Web.";
-
-    config.iconHtml = `
-      <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-         <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" stroke="#4ce68b"/>
-         <path class="checkmark__check" fill="none" d="M16 26 h20 M26 16 v20" stroke-width="3"/> 
-      </svg>`; 
+    desc.innerText = "Hacé click para abrir la App.";
+    
+    config.iconHtml = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" stroke="#4ce68b"/><path class="checkmark__check" fill="none" d="M16 26 h20 M26 16 v20" stroke-width="3"/></svg>`;
   } else {
-      console.warn("Ruta no reconocida");
-      return; 
+    logToUI("⚠️ Ruta desconocida / index directo", "error");
   }
 
-  // Renderizar
+  // Mostrar variables cargadas
+  logToUI(`Config DeepLink: ${config.deepLink}`);
+  logToUI(`Config WebUrl: ${config.webUrl}`);
+
   iconContainer.innerHTML = config.iconHtml;
   btn.style.display = "inline-block";
 
-  // --- LÓGICA BOTÓN (Con detección de User Agent explícita) ---
+  // --- EVENTO CLICK ---
   btn.addEventListener("click", function (e) {
     e.preventDefault();
-    console.log("--- Botón presionado ---");
+    logToUI("--- CLICK DETECTADO ---");
 
-    console.log(`🔗 DeepLink Config: "${config.deepLink}"`);
-    console.log(`🌐 WebUrl Config: "${config.webUrl}"`);
-
-    // Detección detallada (igual a tu archivo original)
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
     const isAndroid = /android/i.test(userAgent);
-
-    console.log(`📱 Dispositivo: ${isAndroid ? "ANDROID" : "DESKTOP / IOS"}`);
+    logToUI(`Es Android? ${isAndroid}`);
 
     if (isAndroid) {
-      console.log("🚀 Intentando abrir App Android...");
-
+      logToUI("🤖 Intentando abrir DEEP LINK...");
+      
       if (!config.deepLink) {
-        console.error("❌ ERROR: Variable DEEP_LINK está vacía.");
+        logToUI("❌ Error: DeepLink vacío", "error");
         return;
       }
 
+      const finalLink = config.deepLink + token;
+      logToUI(`Target: ${finalLink}`);
+
       try {
-        console.log(`Navegando a: ${config.deepLink + token}`);
-        window.location.assign(config.deepLink + token);
+        // Probamos location.assign primero
+        window.location.assign(finalLink);
+        logToUI("✅ window.location.assign ejecutado");
+        
+        // Fallback por si assign falla silenciosamente (raro en Android, pero posible)
+        setTimeout(() => {
+           logToUI("⏳ Timeout ejecutado (¿No se abrió la app?)");
+        }, 2000);
+
       } catch (err) {
-        console.error(`❌ Excepción JS al redirigir: ${err.message}`);
+        logToUI(`❌ Error fatal en redirección: ${err.message}`, "error");
       }
 
     } else {
-      console.log("🌍 Redirigiendo a versión Web...");
+      logToUI("🌍 Redirigiendo a WEB...");
       if (config.webUrl) {
-        const targetUrl = config.webUrl.includes("?") 
-          ? `${config.webUrl}&token=${token}` 
-          : `${config.webUrl}?token=${token}`;
-        window.location.href = targetUrl;
+        const separator = config.webUrl.includes("?") ? "&" : "?";
+        const finalUrl = `${config.webUrl}${separator}token=${token}`;
+        logToUI(`Target Web: ${finalUrl}`);
+        window.location.href = finalUrl;
       } else {
-        console.error("❌ ERROR: Variable WEB_URL está vacía.");
+        logToUI("❌ Error: WebUrl vacío", "error");
       }
     }
   });
