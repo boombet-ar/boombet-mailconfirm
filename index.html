@@ -1,64 +1,30 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
-  <script type="module" src="script.js"></script>
-  <title>BoomBet - Verificación Exitosa</title>
+  <title>BoomBet</title>
 </head>
-
 <body>
   <div class="background-fx"></div>
 
   <div class="container">
     <h1>BOOM<span class="logo-accent">BET</span></h1>
 
-    <div class="checkmark-wrapper">
-      <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
-        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
-      </svg>
-    </div>
+    <div id="iconWrapper" class="checkmark-wrapper">
+       </div>
 
-    <h2>¡Cuenta Verificada!</h2>
-    <p>
-      Gracias por confiar en el club. Ya sos parte oficial de la comunidad.
-    </p>
+    <h2 id="pageTitle">Cargando...</h2>
+    <p id="pageDescription">Por favor esperá un momento.</p>
 
-    <a href="#" id="btnReturnApp" class="btn-back">Volver a la App</a>
-
-    <div class="benefits">
-      <div class="benefit-item">
-        <span class="benefit-icon">✦</span>
-        <div>
-          <span class="benefit-title">Gestión Simplificada</span>
-          Un solo usuario para dominar múltiples plataformas.
-        </div>
-      </div>
-      <div class="benefit-item">
-        <span class="benefit-icon">★</span>
-        <div>
-          <span class="benefit-title">Bonos VIP</span>
-          Acceso a promociones exclusivas.
-        </div>
-      </div>
-      <div class="benefit-item">
-        <span class="benefit-icon">⚡</span>
-        <div>
-          <span class="benefit-title">Soporte Prioritario</span>
-          Resolvemos tus dudas en tiempo récord.
-        </div>
-      </div>
-
-    </div>
+    <a href="#" id="btnAction" class="btn-back" style="display: none;">Continuar</a>
 
     <div class="footer">
       © 2025 BOOMBET ARGENTINA<br />
       Jugar compulsivamente es perjudicial para la salud. +18.
     </div>
   </div>
+  <script type="module" src="script.js"></script>
 </body>
-
 </html>
