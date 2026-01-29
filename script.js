@@ -40,15 +40,19 @@ window.onload = function () {
     fetch(endpoint, { method: "GET" })
       .then((response) => {
         if (response.ok) {
+          // Si todo está bien, mostramos el botón
+          btn.style.display = "inline-block";
         } else {
           console.error(`❌ Error API. Status: ${response.status}`);
           title.innerText = "Enlace Caducado";
           desc.innerText = "Este enlace ya no es válido o ha expirado.";
           iconContainer.style.filter = "grayscale(100%)"; 
+          btn.style.display = "none";
         }
       })
       .catch((error) => {
         console.error("❌ Error de conexión:", error);
+        btn.style.display = "none";
       });
 
     // 3. Configuración UI
@@ -69,6 +73,7 @@ window.onload = function () {
 
     if (!token) {
        title.innerText = "Enlace inválido";
+       btn.style.display = "none";
        return;
     }
     
@@ -83,6 +88,8 @@ window.onload = function () {
          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" stroke="#4ce68b"/>
          <path class="checkmark__check" fill="none" d="M16 26 h20 M26 16 v20" stroke-width="3"/> 
       </svg>`; 
+
+    btn.style.display = "inline-block";
   } else {
       console.warn("Ruta no reconocida");
       return; 
@@ -90,7 +97,6 @@ window.onload = function () {
 
   // Renderizar
   iconContainer.innerHTML = config.iconHtml;
-  btn.style.display = "inline-block";
 
   // --- LÓGICA BOTÓN (Con detección de User Agent explícita) ---
   btn.addEventListener("click", function (e) {
