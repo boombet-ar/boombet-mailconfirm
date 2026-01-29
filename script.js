@@ -1,5 +1,4 @@
 window.onload = function () {
-  console.log("Iniciando Boombet Actions...");
 
   const path = window.location.pathname;
   const partes = path.split("/");
@@ -13,6 +12,9 @@ window.onload = function () {
 
   // Variables de entorno generales
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const webBaseUrl = import.meta.env.VITE_WEB_BASE_URL;
+  const verifyPath = import.meta.env.VITE_VERIFY_PATH;
+  const resetPath = import.meta.env.VITE_RESET_PATH;
 
   // Configuración por defecto
   let config = {
@@ -23,7 +25,6 @@ window.onload = function () {
 
   // --- LÓGICA 1: VERIFICACIÓN DE CORREO ---
   if (path.includes("/verificar/")) {
-    console.log("Modo: Verificación de Cuenta");
 
     // 1. Validar Token básico
     if (!token || token === "verificar" || token === "index.html" || token === "") {
@@ -35,12 +36,10 @@ window.onload = function () {
 
     // 2. LLAMADA A LA API (Igual a mailconfirm)
     const endpoint = `${backendUrl}/api/users/auth/verify?token=${token}`;
-    console.log(`📡 Consultando API: ${endpoint}`);
 
     fetch(endpoint, { method: "GET" })
       .then((response) => {
         if (response.ok) {
-          console.log("✅ ¡Cuenta verificada con éxito en backend!");
         } else {
           console.error(`❌ Error API. Status: ${response.status}`);
           title.innerText = "Enlace Caducado";
@@ -53,7 +52,7 @@ window.onload = function () {
       });
 
     // 3. Configuración UI
-    config.webUrl = import.meta.env.VITE_VERIFY_WEB_URL;
+    config.webUrl = `${webBaseUrl}${verifyPath}`;
     config.deepLink = import.meta.env.VITE_VERIFY_DEEP_LINK;
     
     title.innerText = "¡Cuenta Verificada!";
@@ -67,14 +66,13 @@ window.onload = function () {
 
   // --- LÓGICA 2: CAMBIO DE CONTRASEÑA ---
   } else if (path.includes("/restablecer/")) {
-    console.log("Modo: Restablecer Contraseña");
 
     if (!token) {
        title.innerText = "Enlace inválido";
        return;
     }
     
-    config.webUrl = import.meta.env.VITE_RESET_WEB_URL;
+    config.webUrl = `${webBaseUrl}${resetPath}`;
     config.deepLink = import.meta.env.VITE_RESET_DEEP_LINK;
 
     title.innerText = "Restablecer Clave";
@@ -97,10 +95,7 @@ window.onload = function () {
   // --- LÓGICA BOTÓN (Con detección de User Agent explícita) ---
   btn.addEventListener("click", function (e) {
     e.preventDefault();
-    console.log("--- Botón presionado ---");
 
-    console.log(`🔗 DeepLink Config: "${config.deepLink}"`);
-    console.log(`🌐 WebUrl Config: "${config.webUrl}"`);
 
     // Detección detallada (igual a tu archivo original)
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -117,14 +112,12 @@ window.onload = function () {
       }
 
       try {
-        console.log(`Navegando a: ${config.deepLink + token}`);
         window.location.assign(config.deepLink + token);
       } catch (err) {
         console.error(`❌ Excepción JS al redirigir: ${err.message}`);
       }
 
     } else {
-      console.log("🌍 Redirigiendo a versión Web...");
       if (config.webUrl) {
         const targetUrl = config.webUrl.includes("?") 
           ? `${config.webUrl}&token=${token}` 
