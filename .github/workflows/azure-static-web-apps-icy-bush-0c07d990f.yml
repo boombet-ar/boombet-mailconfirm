@@ -38,6 +38,7 @@ jobs:
           VITE_VERIFY_DEEP_LINK: ${{ secrets.VITE_VERIFY_DEEP_LINK }}
           VITE_WEB_URL: ${{ secrets.VITE_WEB_URL }}  #Esta hay q cambiarla por web-verify, y hay q agregar web-reset. Por ahora no sirve p nada
           VITE_RESET_DEEP_LINK: ${{ secrets.VITE_RESET_DEEP_LINK }}  
+          USERDATA_KEY: ${{ secrets.USERDATA_KEY }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -50,3 +51,4 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ICY_BUSH_0C07D990F }}
           action: "close"
+
