@@ -106,6 +106,16 @@
         font-size: 15px;
       }
 
+      .inline-link {
+        color: var(--neon-green);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .inline-link:hover {
+        text-shadow: 0 0 8px var(--neon-glow);
+      }
+
       /* --- BOTÓN VOLVER A LA APP --- */
       .btn-back {
         display: inline-block;
