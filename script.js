@@ -46,7 +46,7 @@ window.onload = function () {
 
     const endpoint = `${backendUrl}/api/users/auth/verify?token=${token}`;
 
-    fetch(endpoint, { method: "GET" })
+    fetch(endpoint, { method: "GET", headers: { "ngrok-skip-browser-warning": "true" } })
       .then((response) => {
         if (response.ok) {
           iconContainer.innerHTML = svgCheck;
@@ -110,6 +110,65 @@ window.onload = function () {
         window.location.href = targetUrl;
       }
     });
+
+  // --- LÓGICA 3: CONFIRMACIÓN DE AFILIACIÓN (verificar2) ---
+  // Distinto de /verificar/: no verifica email, confirma el proceso de afiliación completo
+  // y redirige al sitio principal tras llamar al endpoint de afiliación.
+  } else if (path.includes("/verificar2")) {
+
+    const jugadorId = new URLSearchParams(window.location.search).get("jugadorId");
+
+    if (!jugadorId) {
+      iconContainer.innerHTML = svgError;
+      iconContainer.style.filter = "grayscale(100%)";
+      title.innerText = "Enlace inválido";
+      desc.innerText = "El link no contiene un código de seguridad.";
+      return;
+    }
+
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const endpointPath = import.meta.env.VITE_AFFILIATE_ENDPOINT_PATH;
+    const headerKey = import.meta.env.VITE_HEADER_KEY;
+
+    fetch(`${backendUrl}${endpointPath}?jugadorId=${jugadorId}`, {
+      method: "GET",
+      headers: { key: headerKey, "ngrok-skip-browser-warning": "true" },
+    })
+      .then((response) => {
+        if (response.ok) {
+          iconContainer.innerHTML = svgCheck;
+          title.innerText = "¡Tu proceso de afiliación a BoomBet está completo!";
+          desc.innerText = "Para completar tu registro, apretá el botón de abajo. Es el último paso.";
+          btn.innerText = "Ir a BoomBet";
+          btn.style.display = "inline-block";
+
+          btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            const affiliateRedirectUrl = import.meta.env.VITE_AFFILIATE_REDIRECT_URL;
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            const isAndroid = /android/i.test(userAgent);
+
+            if (isAndroid) {
+              window.location.assign(import.meta.env.VITE_AFFILIATE_DEEP_LINK + jugadorId);
+            } else {
+              window.location.href = affiliateRedirectUrl;
+            }
+          });
+        } else {
+          console.error(`Error API. Status: ${response.status}`);
+          iconContainer.innerHTML = svgError;
+          iconContainer.style.filter = "grayscale(100%)";
+          title.innerText = "Enlace Caducado";
+          desc.innerText = "Este enlace ya no es válido o ha expirado.";
+        }
+      })
+      .catch((error) => {
+        console.error("Error de conexión:", error);
+        iconContainer.innerHTML = svgError;
+        iconContainer.style.filter = "grayscale(100%)";
+        title.innerText = "Error de conexión";
+        desc.innerText = "No pudimos procesar tu solicitud. Intentá de nuevo más tarde.";
+      });
 
   } else {
     console.warn("Ruta no reconocida");
