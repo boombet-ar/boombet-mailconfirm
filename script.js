@@ -127,7 +127,7 @@ window.onload = function () {
     }
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
-    const endpointPath = import.meta.env.VITE_AFFILIATE_ENDPOINT_PATH;
+    const endpointPath = import.meta.env.VITE_AFFILIATE_ENDPOINT_PATH ?? "/api/jugadores/activar";
     const headerKey = import.meta.env.VITE_HEADER_KEY;
 
     fetch(`${backendUrl}${endpointPath}?jugadorId=${jugadorId}`, {
