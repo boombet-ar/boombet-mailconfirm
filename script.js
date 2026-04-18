@@ -144,7 +144,7 @@ window.onload = function () {
 
           btn.addEventListener("click", function (e) {
             e.preventDefault();
-            const affiliateRedirectUrl = import.meta.env.VITE_AFFILIATE_REDIRECT_URL;
+            const affiliateRedirectUrl = import.meta.env.VITE_AFFILIATE_REDIRECT_URL || "https://app.boombet-ar.bet/";
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             const isAndroid = /android/i.test(userAgent);
 
