@@ -160,6 +160,16 @@ window.onload = function () {
       })
       .then((data) => {
         const loginToken = data.login_token;
+        return fetch(`${backendUrl}/api/users/auth/direct-login?token=${loginToken}`, {
+          method: "GET",
+          headers: { key: headerKey, "ngrok-skip-browser-warning": "true" },
+        }).then((res) => {
+          if (res.ok) return res.json();
+          return Promise.reject(res.status);
+        });
+      })
+      .then((data) => {
+        const accessToken = data.accessToken;
 
         iconContainer.innerHTML = svgCheck;
         title.innerText = "¡Tu proceso de afiliación a BoomBet está completo!";
@@ -170,7 +180,7 @@ window.onload = function () {
         btn.addEventListener("click", function (e) {
           e.preventDefault();
           const redirectBase = import.meta.env.VITE_AFFILIATE_REDIRECT_URL || "https://app.boombet-ar.bet";
-          window.location.href = `${redirectBase}/auth/callback?token=${loginToken}`;
+          window.location.href = `${redirectBase}/auth/callback?token=${accessToken}`;
         });
       })
       .catch((error) => {
