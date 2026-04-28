@@ -169,7 +169,7 @@ window.onload = function () {
 
         btn.addEventListener("click", function (e) {
           e.preventDefault();
-          const redirectBase = import.meta.env.VITE_AFFILIATE_REDIRECT_URL;
+          const redirectBase = import.meta.env.VITE_AFFILIATE_REDIRECT_URL || "https://app.boombet-ar.bet/";
           window.location.href = `${redirectBase}/auth/callback?token=${loginToken}`;
         });
       })
