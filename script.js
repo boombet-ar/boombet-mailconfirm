@@ -49,23 +49,39 @@ window.onload = function () {
     fetch(endpoint, { method: "GET", headers: { "ngrok-skip-browser-warning": "true" } })
       .then((response) => {
         if (response.ok) {
-          iconContainer.innerHTML = svgCheck;
-          title.innerText = "¡Email verificado!";
-          desc.innerText = "Tu cuenta fue verificada correctamente. Ya podés volver a la app.";
-        } else {
-          console.error(`Error API. Status: ${response.status}`);
+          return response.json();
+        }
+        return Promise.reject(response.status);
+      })
+      .then((data) => {
+        const loginToken = data.accessToken;
+
+        iconContainer.innerHTML = svgCheck;
+        title.innerText = "¡Email verificado!";
+        desc.innerText = "Tu cuenta fue verificada correctamente. Para ingresar, apretá el botón de abajo.";
+        btn.innerText = "Ir a BoomBet";
+        btn.style.display = "inline-block";
+
+        btn.addEventListener("click", function (e) {
+          e.preventDefault();
+          const redirectBase = import.meta.env.VITE_AFFILIATE_REDIRECT_URL;
+          window.location.href = `${redirectBase}/auth/callback?token=${loginToken}&redirect=not-affiliated`;
+        });
+      })
+      .catch((error) => {
+        if (typeof error === "number") {
+          console.error(`Error API. Status: ${error}`);
           iconContainer.innerHTML = svgError;
           iconContainer.style.filter = "grayscale(100%)";
           title.innerText = "Enlace Caducado";
           desc.innerText = "Este enlace ya no es válido o ha expirado.";
+        } else {
+          console.error("Error de conexión:", error);
+          iconContainer.innerHTML = svgError;
+          iconContainer.style.filter = "grayscale(100%)";
+          title.innerText = "Error de conexión";
+          desc.innerText = "No pudimos procesar tu solicitud. Intentá de nuevo más tarde.";
         }
-      })
-      .catch((error) => {
-        console.error("Error de conexión:", error);
-        iconContainer.innerHTML = svgError;
-        iconContainer.style.filter = "grayscale(100%)";
-        title.innerText = "Error de conexión";
-        desc.innerText = "No pudimos procesar tu solicitud. Intentá de nuevo más tarde.";
       });
 
   // --- LÓGICA 2: CAMBIO DE CONTRASEÑA ---
@@ -116,9 +132,11 @@ window.onload = function () {
   // y redirige al sitio principal tras llamar al endpoint de afiliación.
   } else if (path.includes("/verificar2")) {
 
-    const jugadorId = new URLSearchParams(window.location.search).get("jugadorId");
+    const params = new URLSearchParams(window.location.search);
+    const jugadorId = params.get("jugadorId");
+    const formId = params.get("formId");
 
-    if (!jugadorId) {
+    if (!jugadorId || !formId) {
       iconContainer.innerHTML = svgError;
       iconContainer.style.filter = "grayscale(100%)";
       title.innerText = "Enlace inválido";
@@ -130,44 +148,45 @@ window.onload = function () {
     const endpointPath = import.meta.env.VITE_AFFILIATE_ENDPOINT_PATH ?? "/api/jugadores/activar";
     const headerKey = import.meta.env.VITE_HEADER_KEY;
 
-    fetch(`${backendUrl}${endpointPath}?jugadorId=${jugadorId}`, {
-      method: "GET",
+    fetch(`${backendUrl}${endpointPath}?jugadorId=${jugadorId}&formId=${formId}`, {
+      method: "POST",
       headers: { key: headerKey, "ngrok-skip-browser-warning": "true" },
     })
       .then((response) => {
         if (response.ok) {
-          iconContainer.innerHTML = svgCheck;
-          title.innerText = "¡Tu proceso de afiliación a BoomBet está completo!";
-          desc.innerText = "Para completar tu registro, apretá el botón de abajo. Es el último paso.";
-          btn.innerText = "Ir a BoomBet";
-          btn.style.display = "inline-block";
+          return response.json();
+        }
+        return Promise.reject(response.status);
+      })
+      .then((data) => {
+        const loginToken = data.login_token;
 
-          btn.addEventListener("click", function (e) {
-            e.preventDefault();
-            const affiliateRedirectUrl = import.meta.env.VITE_AFFILIATE_REDIRECT_URL;
-            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-            const isAndroid = /android/i.test(userAgent);
+        iconContainer.innerHTML = svgCheck;
+        title.innerText = "¡Tu proceso de afiliación a BoomBet está completo!";
+        desc.innerText = "Para completar tu registro, apretá el botón de abajo. Es el último paso.";
+        btn.innerText = "Ir a BoomBet";
+        btn.style.display = "inline-block";
 
-            if (isAndroid) {
-              window.location.assign(import.meta.env.VITE_AFFILIATE_DEEP_LINK + jugadorId);
-            } else {
-              window.location.href = affiliateRedirectUrl;
-            }
-          });
-        } else {
-          console.error(`Error API. Status: ${response.status}`);
+        btn.addEventListener("click", function (e) {
+          e.preventDefault();
+          const redirectBase = import.meta.env.VITE_AFFILIATE_REDIRECT_URL;
+          window.location.href = `${redirectBase}/auth/callback?token=${loginToken}`;
+        });
+      })
+      .catch((error) => {
+        if (typeof error === "number") {
+          console.error(`Error API. Status: ${error}`);
           iconContainer.innerHTML = svgError;
           iconContainer.style.filter = "grayscale(100%)";
           title.innerText = "Enlace Caducado";
           desc.innerText = "Este enlace ya no es válido o ha expirado.";
+        } else {
+          console.error("Error de conexión:", error);
+          iconContainer.innerHTML = svgError;
+          iconContainer.style.filter = "grayscale(100%)";
+          title.innerText = "Error de conexión";
+          desc.innerText = "No pudimos procesar tu solicitud. Intentá de nuevo más tarde.";
         }
-      })
-      .catch((error) => {
-        console.error("Error de conexión:", error);
-        iconContainer.innerHTML = svgError;
-        iconContainer.style.filter = "grayscale(100%)";
-        title.innerText = "Error de conexión";
-        desc.innerText = "No pudimos procesar tu solicitud. Intentá de nuevo más tarde.";
       });
 
   } else {
